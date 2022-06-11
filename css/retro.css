@@ -1,0 +1,38 @@
+body {
+  background-color: #3535EC;
+  font-family: 'Press Start 2P', cursive;
+  line-height: 1.4;
+  color: white;
+}
+
+h1 {
+  font-size: 36px;
+  margin-bottom: 16px;
+}
+
+p {
+  font-size: 12px;
+  margin-bottom: 36px;
+}
+
+.board {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.game-area {
+  position: relative;
+  padding: 12px;
+  border: 2px solid white;
+  margin: 20px;  
+  padding-right: 80px;
+}
+
+.game-data {
+  padding: 20px;
+}
+
+.winner {
+  color: #F71568;
+}
+
