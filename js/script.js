@@ -1,3 +1,11 @@
+// The Game of Life, also known simply as Life, is a cellular automaton devised by the
+// British mathematician John Horton Conway in 1970.
+// It is a zero-player game, meaning that its evolution is determined by its initial state,
+// requiring no further input. One interacts with the Game of Life by creating an initial
+// configuration and observing how it evolves.
+// It is Turing complete and can simulate a universal constructor or any other Turing machine.
+
+
 // # RECUPERO GLI ELEMENTI
 const startButton = document.getElementById('start');
 const grid = document.getElementById('grid');
@@ -8,7 +16,7 @@ const medium = document.getElementById('medium');
 const large = document.getElementById('large');
 const extralarge = document.getElementById('extralarge');
 
-// populate random
+// random button
 const random = document.getElementById('random');
 
 const refreshRate = 300;
@@ -20,32 +28,6 @@ let cellsPerRow;
 let generation = 0; 
 let population; 
 
-// generatore di numeri random
-const getRandomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-
-// genera una popolazione casuale
-const populateRandom = () => {
-    let aliveCells = getRandomNumber(0, totalCells/2);
-
-    do {
-        let cell = getRandomNumber(0, totalCells);
-        if (!world[cell]) {
-            aliveCells--;
-            world[cell] = true;
-        }
-    } while (aliveCells > 0); 
-
-    populateWorld();
-}
-
-// generate grid 
-const generateGrid = () => {
-    for (let i = 0; i < totalCells; i++) {
-        const cell = createCell(i, cellsPerRow);
-        cell.addEventListener('click', onCellClick);
-        grid.appendChild(cell);
-    }
-}
 
 // create single cell
 function createCell(cellNumber) {
@@ -80,7 +62,11 @@ function drawGrid(gridsize) {
     // Radice quadrata per calcolare le celle
     cellsPerRow = Math.sqrt(totalCells);
 
-    generateGrid();
+    for (let i = 0; i < totalCells; i++) {
+        const cell = createCell(i, cellsPerRow);
+        cell.addEventListener('click', onCellClick);
+        grid.appendChild(cell);
+    }
 }
 
 const renderResults = () => {
@@ -94,36 +80,12 @@ const renderResults = () => {
     results.append(row);
 
     row = document.createElement("div");
+    row.classList.add("result");
+    row.classList.add("winner");
     row.append(` Population: : ${population}`);
     results.append(row);
 
 };
-
-// se non ci sono più celle vice, allora il gioco e' finito
-const gameOver = () => {
-    let isGamerOver = population == 0;
-    return isGamerOver;
-};
-
-const getXY = (cellNumber) => { 
-    let y = parseInt(cellNumber / cellsPerRow);
-    let x = cellNumber % cellsPerRow;
-    return [x, y];
-}
-
-// get cell state
-const getState = (x, y) => {
-
-    // PacMan effect    
-    if (x > (cellsPerRow - 1)) x = 0;
-    if (x < 0) x = cellsPerRow - 1;
-
-    if (y > (cellsPerRow - 1)) y = 0;
-    if (y < 0) y = cellsPerRow - 1;
-
-    let cellNun = y * cellsPerRow + x;
-    return (world[cellNun] ? 1: 0);
-}
 
 // populate world with dead or alive cells
 const populateWorld = () => {
@@ -142,16 +104,28 @@ const populateWorld = () => {
     return aliveCells;
 }
 
-
-
-
 const nextGeneration = () => {
+
+    // get cell state
+    const getState = (x, y) => {
+
+        // PacMan effect    
+        if (x > (cellsPerRow - 1)) x = 0;
+        if (x < 0) x = cellsPerRow - 1;
+
+        if (y > (cellsPerRow - 1)) y = 0;
+        if (y < 0) y = cellsPerRow - 1;
+
+        let cellNun = y * cellsPerRow + x;
+        return (world[cellNun] ? 1: 0);
+    }
+
     const newWorld = [];
 
     for (let i = 0; i < totalCells; i++) {
-        let pos = getXY(i);
-        let x = pos[0];
-        let y = pos[1];
+
+        let y = parseInt(i / cellsPerRow);
+        let x = i % cellsPerRow;
 
         // apply rules
         let neighbours = getState(x-1, y-1) + getState(x, y-1) + getState(x+1, y-1) +
@@ -193,9 +167,9 @@ function onStartClick(event) {
     }
 
     const playGame = setInterval(() => {
-        if (gameOver()) {
+        // se non ci sono più celle vice, allora il gioco e' finito
+        if (population == 0) {
             clearInterval(playGame);
-        //renderResults();
         }
         nextGeneration();
     }, refreshRate);
@@ -203,10 +177,32 @@ function onStartClick(event) {
 
 }  
 
+// genera una popolazione casuale
+const populateRandom = () => {
+
+    // generatore di numeri random
+    const getRandomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+    world = [];
+    let aliveCells = getRandomNumber(0, totalCells/2);
+
+    do {
+        let cell = getRandomNumber(0, totalCells);
+        if (!world[cell]) {
+            aliveCells--;
+            world[cell] = true;
+        }
+    } while (aliveCells > 0); 
+
+    populateWorld();
+}
+
+
 
 // # Prendo il bottone e aggancio event listener
 random.addEventListener("click", populateRandom);
 startButton.addEventListener("click", onStartClick);
+
 small.addEventListener("click", () => drawGrid(64));
 medium.addEventListener("click", () => drawGrid(100));
 large.addEventListener("click", () => drawGrid(400));
