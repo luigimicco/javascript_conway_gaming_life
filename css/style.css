@@ -37,7 +37,7 @@
 
 #grid .cell {
     cursor: pointer;
-    border: 1px solid rgb(180, 177, 177);
+    border: 1px solid rgb(220, 216, 216);
     display: flex;
     align-items: center;
     justify-content: center;

@@ -6,7 +6,7 @@
 // It is Turing complete and can simulate a universal constructor or any other Turing machine.
 
 
-// # RECUPERO GLI ELEMENTI
+// main elements
 const startButton = document.getElementById('start');
 const grid = document.getElementById('grid');
 
@@ -29,38 +29,36 @@ let generation = 0;
 let population; 
 
 
-// create single cell
-function createCell(cellNumber) {
-    world[cellNumber] = false;
-    const cell = document.createElement("div");
-    cell.id = cellNumber;
-    cell.className = "cell";
-    cell.innerText = "";
-    const wh = `calc(100% / ${cellsPerRow})`;
-    cell.style.height = wh;
-    cell.style.width = wh;
-    return cell;
-}
-
+// toggle on cell
 function onCellClick(event) {
     const cell = event.target;
-    //cell.removeEventListener("click", onCellClick);
-
     let number = parseInt(cell.id);
 
     world[number] = !world[number];
     cell.classList.toggle("alive")
 }  
 
+// draw the whole crid
 function drawGrid(gridsize) {
 
-    totalCells = gridsize;
-    
-    // Elimino il contenuto di grid
-    grid.innerHTML = '';
+    // create single cell
+    function createCell(cellNumber) {
+        world[cellNumber] = false;
+        const cell = document.createElement("div");
+        cell.id = cellNumber;
+        cell.className = "cell";
+        cell.innerText = "";
+        const wh = `calc(100% / ${cellsPerRow})`;
+        cell.style.height = wh;
+        cell.style.width = wh;
+        return cell;
+    }
 
-    // Radice quadrata per calcolare le celle
-    cellsPerRow = Math.sqrt(totalCells);
+    totalCells = gridsize*gridsize;
+    cellsPerRow = gridsize;
+    
+    // empty grid
+    grid.innerHTML = '';
 
     for (let i = 0; i < totalCells; i++) {
         const cell = createCell(i, cellsPerRow);
@@ -69,23 +67,6 @@ function drawGrid(gridsize) {
     }
 }
 
-const renderResults = () => {
-    const results = document.getElementById("results");
-    results.innerHTML = "";
-    
-    //renderizza un singolo risultato dato un oggetto cars
-    let row = document.createElement("div");
-    row.classList.add("result");
-    row.append(` Generation : ${generation}`);
-    results.append(row);
-
-    row = document.createElement("div");
-    row.classList.add("result");
-    row.classList.add("winner");
-    row.append(` Population: : ${population}`);
-    results.append(row);
-
-};
 
 // populate world with dead or alive cells
 const populateWorld = () => {
@@ -104,55 +85,79 @@ const populateWorld = () => {
     return aliveCells;
 }
 
-const nextGeneration = () => {
-
-    // get cell state
-    const getState = (x, y) => {
-
-        // PacMan effect    
-        if (x > (cellsPerRow - 1)) x = 0;
-        if (x < 0) x = cellsPerRow - 1;
-
-        if (y > (cellsPerRow - 1)) y = 0;
-        if (y < 0) y = cellsPerRow - 1;
-
-        let cellNun = y * cellsPerRow + x;
-        return (world[cellNun] ? 1: 0);
-    }
-
-    const newWorld = [];
-
-    for (let i = 0; i < totalCells; i++) {
-
-        let y = parseInt(i / cellsPerRow);
-        let x = i % cellsPerRow;
-
-        // apply rules
-        let neighbours = getState(x-1, y-1) + getState(x, y-1) + getState(x+1, y-1) +
-                            getState(x-1, y) + getState(x+1, y) +
-                            getState(x-1, y+1) + getState(x, y+1) + getState(x+1, y+1);
-
-        if (world[i] && (neighbours == 2 || neighbours == 3)) { // Any live cell with two or three live neighbours survives
-            newWorld[i] = true;                             
-        } else if (!world[i] && neighbours == 3) { // Any dead cell with three live neighbours becomes a live cell.
-            newWorld[i] = true;                             
-        } else {
-            newWorld[i] = false; // All other live cells die in the next generation. Similarly, all other dead cells stay dead.                            
-        }    
-    }
-
-    world = newWorld;
-    generation++;
-    population = populateWorld();
-    renderResults();
-
-}
 
 function onStartClick(event) {
 
-    // Cambio testo al bottone
+
+
+    // show info about generation and population
+    const renderResults = () => {
+        const results = document.getElementById("results");
+        results.innerHTML = "";
+        
+        let row = document.createElement("div");
+        row.classList.add("result");
+        row.append(` Generation : ${generation}`);
+        results.append(row);
+    
+        row = document.createElement("div");
+        row.classList.add("result");
+        row.classList.add("winner");
+        row.append(` Population: : ${population}`);
+        results.append(row);
+    
+    };
+
+    // calculate next generation state
+    const nextGeneration = () => {
+
+        // get cell state
+        const getState = (x, y) => {
+    
+            // PacMan effect    
+            if (x > (cellsPerRow - 1)) x = 0;
+            if (x < 0) x = cellsPerRow - 1;
+    
+            if (y > (cellsPerRow - 1)) y = 0;
+            if (y < 0) y = cellsPerRow - 1;
+    
+            let cellNun = y * cellsPerRow + x;
+            return (world[cellNun] ? 1: 0);
+        }
+    
+        const newWorld = [];
+    
+        for (let i = 0; i < totalCells; i++) {
+    
+            let y = parseInt(i / cellsPerRow);
+            let x = i % cellsPerRow;
+    
+            // apply rules
+            let neighbours = getState(x-1, y-1) + getState(x, y-1) + getState(x+1, y-1) +
+                                getState(x-1, y) + getState(x+1, y) +
+                                getState(x-1, y+1) + getState(x, y+1) + getState(x+1, y+1);
+    
+            if (world[i] && (neighbours == 2 || neighbours == 3)) { // Any live cell with two or three live neighbours survives
+                newWorld[i] = true;                             
+            } else if (!world[i] && neighbours == 3) { // Any dead cell with three live neighbours becomes a live cell.
+                newWorld[i] = true;                             
+            } else {
+                newWorld[i] = false; // All other live cells die in the next generation. Similarly, all other dead cells stay dead.                            
+            }    
+        }
+    
+        world = newWorld;
+        generation++;
+        population = populateWorld();
+        renderResults();
+    
+    }
+
+
+    // change caption to start button
     startButton.innerText = '[Stop]';
-    // impedisce di premerre più volte start
+
+    // avoid to press more time the start button
     startButton.removeEventListener('click', onStartClick);
     startButton.addEventListener("click", () => {
         clearInterval(playGame);
@@ -160,14 +165,15 @@ function onStartClick(event) {
         startButton.addEventListener("click", onStartClick);
     });
 
-    // impedisce di modificare lo schema
+    // no events on cells after start
     const allCells = grid.querySelectorAll('.cell');
     for (let i = 0; i < allCells.length; i++) {
         allCells[i].removeEventListener('click', onCellClick);
     }
 
+
     const playGame = setInterval(() => {
-        // se non ci sono più celle vice, allora il gioco e' finito
+        // no more alive cells ? Game over
         if (population == 0) {
             clearInterval(playGame);
         }
@@ -177,10 +183,10 @@ function onStartClick(event) {
 
 }  
 
-// genera una popolazione casuale
+// setup a random population
 const populateRandom = () => {
 
-    // generatore di numeri random
+    // random genertor
     const getRandomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
     world = [];
@@ -199,16 +205,16 @@ const populateRandom = () => {
 
 
 
-// # Prendo il bottone e aggancio event listener
+// event listener on buttons
 random.addEventListener("click", populateRandom);
 startButton.addEventListener("click", onStartClick);
 
-small.addEventListener("click", () => drawGrid(64));
-medium.addEventListener("click", () => drawGrid(100));
-large.addEventListener("click", () => drawGrid(400));
-extralarge.addEventListener("click", () => drawGrid(900));
+small.addEventListener("click", () => drawGrid(10));
+medium.addEventListener("click", () => drawGrid(20));
+large.addEventListener("click", () => drawGrid(50));
+extralarge.addEventListener("click", () => drawGrid(100));
 
 
 // draw a medium grid as default
-drawGrid(100);
+drawGrid(20);
 
