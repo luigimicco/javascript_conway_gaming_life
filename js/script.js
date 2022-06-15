@@ -21,20 +21,19 @@ const random = document.getElementById('random');
 
 const refreshRate = 300;
 
-let world = [];
-
-let totalCells;
-let cellsPerRow;
-let generation = 0; 
-let population; 
-
+const world = {
+        cells: [],
+        population: null,
+        generation: 0,
+        cellsPerRow: 20
+};
 
 // toggle on cell
 function onCellClick(event) {
     const cell = event.target;
     let number = parseInt(cell.id);
 
-    world[number] = !world[number];
+    world.cells[number] = !world.cells[number];
     cell.classList.toggle("alive")
 }  
 
@@ -43,25 +42,25 @@ function drawGrid(gridsize) {
 
     // create single cell
     function createCell(cellNumber) {
-        world[cellNumber] = false;
+        world.cells[cellNumber] = false;
         const cell = document.createElement("div");
         cell.id = cellNumber;
         cell.className = "cell";
         cell.innerText = "";
-        const wh = `calc(100% / ${cellsPerRow})`;
+        const wh = `calc(100% / ${gridsize})`;
         cell.style.height = wh;
         cell.style.width = wh;
         return cell;
     }
 
-    totalCells = gridsize*gridsize;
-    cellsPerRow = gridsize;
+    let totalCells = gridsize*gridsize;
+    world.cellsPerRow = gridsize;
     
     // empty grid
     grid.innerHTML = '';
 
     for (let i = 0; i < totalCells; i++) {
-        const cell = createCell(i, cellsPerRow);
+        const cell = createCell(i, gridsize);
         cell.addEventListener('click', onCellClick);
         grid.appendChild(cell);
     }
@@ -75,7 +74,8 @@ const populateWorld = () => {
     const allCells = grid.querySelectorAll('.cell');
 
     for (let i = 0; i < allCells.length; i++) {
-        if (world[i]) {
+      
+        if (world.cells[i]) {
             allCells[i].classList.add("alive");
             aliveCells++;
         } else    
@@ -97,13 +97,13 @@ function onStartClick(event) {
         
         let row = document.createElement("div");
         row.classList.add("result");
-        row.append(` Generation : ${generation}`);
+        row.append(` Generation : ${world.generation}`);
         results.append(row);
     
         row = document.createElement("div");
         row.classList.add("result");
         row.classList.add("winner");
-        row.append(` Population: : ${population}`);
+        row.append(` Population: : ${world.population}`);
         results.append(row);
     
     };
@@ -115,40 +115,42 @@ function onStartClick(event) {
         const getState = (x, y) => {
     
             // PacMan effect    
-            if (x > (cellsPerRow - 1)) x = 0;
-            if (x < 0) x = cellsPerRow - 1;
+            if (x > (world.cellsPerRow - 1)) x = 0;
+            if (x < 0) x = world.cellsPerRow - 1;
     
-            if (y > (cellsPerRow - 1)) y = 0;
-            if (y < 0) y = cellsPerRow - 1;
+            if (y > (world.cellsPerRow - 1)) y = 0;
+            if (y < 0) y = world.cellsPerRow - 1;
     
-            let cellNun = y * cellsPerRow + x;
-            return (world[cellNun] ? 1: 0);
+            let cellNun = y * world.cellsPerRow + x;
+            return (world.cells[cellNun] ? 1: 0);
         }
     
         const newWorld = [];
+
+        let totalCells = world.cellsPerRow * world.cellsPerRow;
     
         for (let i = 0; i < totalCells; i++) {
     
-            let y = parseInt(i / cellsPerRow);
-            let x = i % cellsPerRow;
+            let y = parseInt(i / world.cellsPerRow);
+            let x = i % world.cellsPerRow;
     
             // apply rules
             let neighbours = getState(x-1, y-1) + getState(x, y-1) + getState(x+1, y-1) +
                                 getState(x-1, y) + getState(x+1, y) +
                                 getState(x-1, y+1) + getState(x, y+1) + getState(x+1, y+1);
     
-            if (world[i] && (neighbours == 2 || neighbours == 3)) { // Any live cell with two or three live neighbours survives
+            if (world.cells[i] && (neighbours == 2 || neighbours == 3)) { // Any live cell with two or three live neighbours survives
                 newWorld[i] = true;                             
-            } else if (!world[i] && neighbours == 3) { // Any dead cell with three live neighbours becomes a live cell.
+            } else if (!world.cells[i] && neighbours == 3) { // Any dead cell with three live neighbours becomes a live cell.
                 newWorld[i] = true;                             
             } else {
                 newWorld[i] = false; // All other live cells die in the next generation. Similarly, all other dead cells stay dead.                            
             }    
         }
     
-        world = newWorld;
-        generation++;
-        population = populateWorld();
+        world.cells = newWorld;
+        world.generation++;
+        world.population = populateWorld();
         renderResults();
     
     }
@@ -174,7 +176,7 @@ function onStartClick(event) {
 
     const playGame = setInterval(() => {
         // no more alive cells ? Game over
-        if (population == 0) {
+        if (world.population == 0) {
             clearInterval(playGame);
         }
         nextGeneration();
@@ -189,14 +191,14 @@ const populateRandom = () => {
     // random genertor
     const getRandomNumber = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
-    world = [];
+    let totalCells = world.cellsPerRow * world.cellsPerRow;
+    world.cells = [];
     let aliveCells = getRandomNumber(0, totalCells/2);
-
     do {
         let cell = getRandomNumber(0, totalCells);
-        if (!world[cell]) {
+        if (!world.cells[cell]) {
             aliveCells--;
-            world[cell] = true;
+            world.cells[cell] = true;
         }
     } while (aliveCells > 0); 
 
